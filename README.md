@@ -14,19 +14,19 @@ combined those two APIs and turned into Python so it is easier to use in scripts
 use it like
 
 ```python
->>> import sync
->>> token = sync.login("email", "password")
->>> sync.file_list(token)
+>>> import supernote
+>>> token = supernote.login("email", "password")
+>>> supernote.file_list(token)
 
 [{'id': 'xxx',
-  'directoryId': 'yyy',
+  'directoryId': 'ccc',
   'fileName': 'Note',
   'size': 0,
 ...
 }]
 
 # use id of directory (not directoryId) to see sub directory contents
->>> sync.file_list(token, 'aaa') 
+>>> supernote.file_list(token, 'xxx') 
 
 [{'id': 'bbb',
   'directoryId': 'ccc',
@@ -36,11 +36,11 @@ use it like
 }]
 
 # use id of file from file_list
->>> contents = sync.download_file(token, 'bbb')
+>>> contents = supernote.download_file(token, 'bbb')
 
 # saves directly to filename
->>> sync.download_file(token, 'bbb', "filename.note")
+>>> supernote.download_file(token, 'bbb', "filename.note")
 
 # use id of directory (not directoryId) from file_list 
->>> sync.upload_file(token, "test.pdf", directory="123")
+>>> supernote.upload_file(token, "test.pdf", directory="xxx")
 ```
