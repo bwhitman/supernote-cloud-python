@@ -25,7 +25,8 @@ use it like
 ...
 }]
 
->>> sync.file_list(token, 'aaa') # use id of directory (not directoryId) to see sub directory contents
+# use id of directory (not directoryId) to see sub directory contents
+>>> sync.file_list(token, 'aaa') 
 
 [{'id': 'bbb',
   'directoryId': 'ccc',
@@ -34,9 +35,12 @@ use it like
 ...
 }]
 
->>> contents = sync.download_file(token, 'bbb') # use id of file from file_list
+# use id of file from file_list
+>>> contents = sync.download_file(token, 'bbb')
 
->>> sync.download_file(token, 'bbb', "filename.note") # saves directly to filename
+# saves directly to filename
+>>> sync.download_file(token, 'bbb', "filename.note")
 
->>> sync.upload_file(token, "test.pdf", directory="123") # use id of directory (not directoryId) from file_list 
+# use id of directory (not directoryId) from file_list 
+>>> sync.upload_file(token, "test.pdf", directory="123")
 ```
