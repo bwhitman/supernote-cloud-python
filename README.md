@@ -44,3 +44,21 @@ use it like
 # use id of directory (not directoryId) from file_list 
 >>> supernote.upload_file(token, "test.pdf", directory="xxx")
 ```
+
+## Download NYT crossword puzzle PDF and upload to Supernote cloud
+
+A popular thing to do on Supernotes is play the NYT puzzle with a pen, like the olden days. There's a few scripts that claim to do this but they all fail these days as NYT as increased their security. We're using our own authentication token, so it's not like we're stealing anything. If you have a NYT sub, copy your cookies into `auth.txt` in this folder, and then make sure your `Document` folder in Supernote has a `puzzles` folder inside:
+
+```
+# your auth.txt file in the current folder should have
+# supernote-email,password
+# NYT-cookie0 (load the NYT page and copy your cookies)
+# NYT-cookie1 ("print" a crossword and copy your cookies from that request)
+```
+
+Then just:
+
+```
+python supernote.py
+```
+

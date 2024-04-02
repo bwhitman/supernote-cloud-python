@@ -72,4 +72,32 @@ def upload_file(token, filename, directory=0):
     else:
         print("Error: %s" % (data['errorMsg']))
 
+# as an example, we download the latest NYT crossword and put it on the folder Document/puzzles
+# your auth.txt file in the current folder should have
+# username,password
+# NYT-cookie0 (load the NYT page and copy your cookies)
+# NYT-cookie1 ("print" a crossword and copy your cookies from that request)
+if __name__ == '__main__':
+    import nyt
+    uploaded=False
+    auth = open('auth.txt').read().split('\n')
+    (username,password) = auth[0].split(',')
+    puzzle_fn = nyt.get(auth[1], auth[2])
+    if puzzle_fn is not None:
+        token = login(username, password)
+        if token is None:
+            print("Couldn't log into supernote")
+        else:
+            for d in file_list(token):
+                if(d['isFolder']=='Y' and d['fileName']=="Document"): 
+                    document_id = d['id']
+                    for d in file_list(token, document_id):
+                        if(d['isFolder']=='Y' and d['fileName']=="puzzles"): 
+                            puzzles_id = d['id']
+                            upload_file(token, puzzle_fn, directory=puzzles_id)
+                            uploaded = True
+            if not uploaded:
+                print("Didn't upload puzzle. Check you have a puzzles folder in Document on Supernote cloud")
 
+    else:
+        print("Problem downloading puzzle, bad NYT cookies?")
