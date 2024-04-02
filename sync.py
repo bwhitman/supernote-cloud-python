@@ -3,58 +3,73 @@ from hashlib import sha256, md5
 
 # thank you 
 # https://github.com/adrianba/supernote-cloud-api/
+# https://github.com/colingourlay/supernote-cloud-api/
 
-def sha256_d(s):
+API_BASE = "https://cloud.supernote.com/api/"
+
+def _sha256_s(s):
     return sha256(s.encode('utf-8')).hexdigest()
-
-def md5_d(s):
+def _md5_s(s):
     return md5(s.encode('utf-8')).hexdigest()
+def _md5_b(b):
+    return md5(b).hexdigest()
 
-def post_json(path, payload, token=None):
-    base = "https://cloud.supernote.com/api/"
+def _post_json(path, payload, token=None):
     headers = {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36"
     }
     if token is not None:
         headers['x-access-token'] = token
-    response = requests.post(base+path, json=payload, headers=headers)
+    response = requests.post(API_BASE+path, json=payload, headers=headers)
     return response.json()
 
-def get_random_code(email):
+def _get_random_code(email):
     # countrycode 
     payload = {'countryCode': "1", "account":email }
-    data = post_json("official/user/query/random/code", payload)
+    data = _post_json("official/user/query/random/code", payload)
     return (data['randomCode'], data['timestamp'])
 
-def get_access_token(email, password, rc, timestamp):
-    pd = sha256_d(md5_d(password) + rc);
+def _get_access_token(email, password, rc, timestamp):
+    pd = _sha256_s(_md5_s(password) + rc);
     payload = {'countryCode':1, 'account':email, 'password':pd, 
         'browser':'Chrome107', 'equipment':"1", "loginMethod":"1", "timestamp":timestamp, "language":"en"}
-    data = post_json("official/user/account/login/new", payload)
+    data = _post_json("official/user/account/login/new", payload)
     return data['token']
 
 # returns access token
 def login(email, password):
-    (rc, timestamp) = get_random_code(email)
-    return get_access_token(email, password, rc, timestamp)
+    (rc, timestamp) = _get_random_code(email)
+    return _get_access_token(email, password, rc, timestamp)
 
 def file_list(token, directory=0):
     payload = {"directoryId": directory, "pageNo":1, "pageSize":100, "order":"time", "sequence":"desc"}
-    data = post_json("file/list/query", payload, token=token)
+    data = _post_json("file/list/query", payload, token=token)
     return data['userFileVOList']
 
 def download_file(token, id, filename=None):
     payload = {"id":id, "type":0}
-    data = post_json("file/download/url", payload, token=token)
+    data = _post_json("file/download/url", payload, token=token)
     c = requests.get(data['url']).content
     if(filename is not None):
         f = open(filename,'wb')
         f.write(c)
         f.close()
+    else:
+        return c
 
-    
-
-
+def upload_file(token, filename, directory=0):
+    file_contents = open(filename,'rb').read()
+    data_md5 = _md5_b(file_contents)
+    payload = {'directoryId':directory, 'fileName':filename, 'md5':data_md5, 'size':len(file_contents)}
+    data = _post_json('file/upload/apply', payload, token=token)
+    if(data['success']):
+        put_headers = {'Authorization':data['s3Authorization'], 'x-amz-date':data['xamzDate'], "x-amz-content-sha256": "UNSIGNED-PAYLOAD"}
+        requests.put(data['url'], file_contents, headers=put_headers)
+        inner_name = os.path.basename(data['url'])
+        payload = {"directoryId":directory, "fileName":filename, "fileSize":len(file_contents), "innerName":inner_name,"md5":data_md5}
+        data = _post_json("file/upload/finish", payload, token=token)
+    else:
+        print("Error: %s" % (data['errorMsg']))
 
 
